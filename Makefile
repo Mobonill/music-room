@@ -1,4 +1,4 @@
-.PHONY: install dev mobile
+.PHONY: install dev mobile db
 
 #to have hooks on github
 install:
@@ -11,3 +11,6 @@ dev:
 
 mobile:
 	cd mobile && flutter run
+
+db:
+	docker compose up -d
