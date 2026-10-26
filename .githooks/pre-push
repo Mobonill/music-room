@@ -9,3 +9,14 @@ npx prettier --check "src/**/*.ts" "test/**/*.ts" || {
 
 echo "Lint..."
 npm run lint || exit 1
+
+cd ../mobile || exit 1
+
+echo "Checking mobile format..."
+dart format --output=none --set-exit-if-changed lib || {
+  echo "Incorrect format : launch 'dart format lib' into mobile/ before committing again."
+  exit 1
+}
+
+echo "Mobile lint..."
+flutter analyze || exit 1
