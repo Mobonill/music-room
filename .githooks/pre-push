@@ -1,22 +1,5 @@
 #!/bin/sh
-cd backend || exit 1
+ROOT="$(git rev-parse --show-toplevel)"
 
-echo "Checking format..."
-npx prettier --check "src/**/*.ts" "test/**/*.ts" || {
-  echo "Incorrect format : launch'npm run format' into backend/ before committing again."
-  exit 1
-}
-
-echo "Lint..."
-npm run lint || exit 1
-
-cd ../mobile || exit 1
-
-echo "Checking mobile format..."
-dart format --output=none --set-exit-if-changed lib || {
-  echo "Incorrect format : launch 'dart format lib' into mobile/ before committing again."
-  exit 1
-}
-
-echo "Mobile lint..."
-flutter analyze || exit 1
+"$ROOT/.githooks/checks/backend.sh" || exit 1
+"$ROOT/.githooks/checks/mobile.sh" || exit 1
