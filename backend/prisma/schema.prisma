@@ -10,4 +10,48 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+model User {
+  id                Int               @id @default(autoincrement())
+  name              String?
+  email              String?           @unique
+  password_hash     String?
+  email_verified    DateTime?
+  facebook_id       String?
+  google_id         String?
+  updated_at        DateTime          @updatedAt
+  created_at        DateTime          @default(now())
+  bio               String?
+  friends_infos     String?
+  private_infos     String?
+  music_preferences String?
+
+  playlists         Playlist[]        @relation("PlaylistOwner")
+  playlist_members  PlaylistMember[]
+}
+
+model Playlist {
+  id         Int              @id @default(autoincrement())
+  name       String
+  owner_id   Int
+  visibility String           // "public" or "private"
+
+  owner      User             @relation("PlaylistOwner", fields: [owner_id], references: [id], onDelete: Cascade)
+  members    PlaylistMember[]
+
+  @@map("playlists") // to keep the name in minuscule and plural in the db
+}
+
+model PlaylistMember {
+  playlist_id Int
+  user_id     Int
+  can_edit    Boolean
+
+  playlist    Playlist        @relation(fields: [playlist_id], references: [id], onDelete: Cascade)
+  user        User            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@id([playlist_id, user_id])
+  @@map("playlist_members")
 }
