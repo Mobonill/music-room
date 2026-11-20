@@ -1,0 +1,567 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Stack Music Room</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Layout : colonne de lecture (max 1120px) avec un sommaire collant à gauche sur grand écran ; tableaux dans des conteneurs défilants */
+:root {
+  --bg: #f5f6fa;
+  --surface: #ffffff;
+  --fg: #161a2b;
+  --muted: #586079;
+  --line: #dcdfe9;
+  --accent: #2b50cf;
+  --accent-soft: #e5eafc;
+  --ok: #17704a;
+  --ok-soft: #e1f3e9;
+  --mid: #8a5300;
+  --mid-soft: #fbefd9;
+  --bad: #b0261d;
+  --bad-soft: #fbe6e3;
+  --info: #4d5570;
+  --info-soft: #eaecf3;
+  --font-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 0.9375rem;
+  --step-1: 1.125rem;
+  --step-2: 1.4rem;
+  --step-3: 2rem;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f121b;
+    --surface: #161a26;
+    --fg: #e5e8f1;
+    --muted: #9aa2ba;
+    --line: #2a3043;
+    --accent: #8fa7ff;
+    --accent-soft: #1d2647;
+    --ok: #74d3a3;
+    --ok-soft: #15302a;
+    --mid: #f0ba66;
+    --mid-soft: #33281a;
+    --bad: #ff9088;
+    --bad-soft: #3a1d1d;
+    --info: #aeb5c9;
+    --info-soft: #232838;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f121b;
+  --surface: #161a26;
+  --fg: #e5e8f1;
+  --muted: #9aa2ba;
+  --line: #2a3043;
+  --accent: #8fa7ff;
+  --accent-soft: #1d2647;
+  --ok: #74d3a3;
+  --ok-soft: #15302a;
+  --mid: #f0ba66;
+  --mid-soft: #33281a;
+  --bad: #ff9088;
+  --bad-soft: #3a1d1d;
+  --info: #aeb5c9;
+  --info-soft: #232838;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.6;
+}
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  background: var(--info-soft);
+  color: var(--fg);
+  padding: 1px 5px;
+  border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: var(--step-3); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: var(--step-2); font-weight: 600; }
+h3 { font-size: var(--step-1); font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+ul, ol { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+li { max-width: 68ch; }
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* En-tête */
+.masthead { display: grid; gap: 14px; padding-bottom: 28px; border-bottom: 1px solid var(--line); }
+.masthead .lede { color: var(--muted); font-size: var(--step-1); max-width: 62ch; }
+.fixed-stack { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.fixed-stack .label { font-size: var(--step--1); color: var(--muted); margin-right: 4px; }
+
+/* Puces d'état */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--step--1);
+  font-weight: 600;
+  line-height: 1;
+  padding: 5px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.chip.ok { color: var(--ok); background: var(--ok-soft); }
+.chip.mid { color: var(--mid); background: var(--mid-soft); }
+.chip.bad { color: var(--bad); background: var(--bad-soft); }
+.chip.info { color: var(--info); background: var(--info-soft); }
+.chip.acc { color: var(--accent); background: var(--accent-soft); }
+
+/* Grille principale */
+.layout { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 48px; margin-top: 32px; }
+.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 20px); align-self: start; display: grid; gap: 10px; }
+.toc ol { list-style: none; padding: 0; gap: 2px; }
+.toc a {
+  display: block;
+  text-decoration: none;
+  color: var(--muted);
+  font-size: var(--step--1);
+  padding: 4px 10px;
+  border-left: 2px solid var(--line);
+}
+.toc a:hover { color: var(--fg); border-left-color: var(--accent); }
+.content { display: grid; gap: 56px; min-width: 0; }
+section { display: grid; gap: 16px; min-width: 0; scroll-margin-top: 20px; }
+.section-head { display: grid; gap: 6px; }
+.section-head p { color: var(--muted); }
+
+/* Encadrés */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.note {
+  border-left: 3px solid var(--mid);
+  background: var(--mid-soft);
+  padding: 12px 16px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  max-width: 76ch;
+}
+.note p { max-width: none; }
+
+/* Décisions */
+.decisions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.decision { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.decision header { display: flex; justify-content: space-between; align-items: start; gap: 10px; flex-wrap: wrap; }
+.decision p, .decision li { color: var(--muted); font-size: var(--step--1); }
+.decision .ref { font-family: var(--font-mono); font-size: var(--step--1); color: var(--muted); }
+
+/* Tableaux */
+.scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+table { width: 100%; min-width: 660px; border-collapse: collapse; font-size: var(--step--1); }
+th, td { text-align: left; vertical-align: top; padding: 11px 14px; border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: 0; }
+th { font-family: var(--font-mono); font-weight: 500; font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); background: var(--bg); }
+td:first-child { font-weight: 600; color: var(--fg); width: 21%; }
+td:last-child { width: 1%; white-space: nowrap; }
+td small { display: block; font-weight: 400; color: var(--muted); margin-top: 2px; }
+
+/* Listes de choix */
+.choices { display: grid; gap: 0; margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.choice { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 16px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.choice:last-child { border-bottom: 0; }
+.choice dt { font-weight: 600; }
+.choice dd { margin: 0; color: var(--muted); min-width: 0; }
+.choice dd strong { color: var(--fg); font-weight: 600; }
+
+/* Revue à quatre rôles */
+.roles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.role { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.role .who { font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.role p { font-size: var(--step--1); color: var(--muted); }
+.synth li strong { font-weight: 600; }
+
+/* Plan */
+.steps { list-style: none; padding: 0; counter-reset: step; gap: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); max-width: none; }
+.steps li:last-child { border-bottom: 0; }
+.steps li::before { content: counter(step); font-family: var(--font-display); font-weight: 600; font-size: var(--step-1); color: var(--accent); }
+.steps strong { font-weight: 600; }
+.steps span { color: var(--muted); }
+
+footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: var(--step--1); display: grid; gap: 6px; }
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .toc { position: static; }
+  .toc ol { display: flex; flex-wrap: wrap; gap: 6px; }
+  .toc a { border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; background: var(--surface); }
+  .decisions, .roles { grid-template-columns: minmax(0, 1fr); }
+  .choice { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <span class="eyebrow">Projet Music Room · sujet v6 · comparatif à valider en groupe</span>
+    <h1>Stack Music Room</h1>
+    <p class="lede">Les options techniques pour chaque partie du projet, avec leurs avantages, leurs limites et un avis. Le backend NestJS est un choix de l'équipe et n'est pas remis en cause ici.</p>
+    <div class="fixed-stack">
+      <span class="label">Déjà en place dans le dépôt :</span>
+      <span class="chip acc">NestJS 12 · Express</span>
+      <span class="chip acc">PostgreSQL 17 · docker-compose</span>
+      <span class="chip acc">Flutter · lecteur YouTube</span>
+      <span class="chip acc">Jest · oxlint</span>
+      <span class="chip acc">GitHub Actions · Makefile</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" aria-label="Sommaire">
+      <span class="eyebrow">Sommaire</span>
+      <ol>
+        <li><a href="#contraintes">Contraintes du sujet</a></li>
+        <li><a href="#decisions">Décisions de groupe</a></li>
+        <li><a href="#bdd">Base de données</a></li>
+        <li><a href="#orm">ORM</a></li>
+        <li><a href="#temps-reel">Temps réel</a></li>
+        <li><a href="#api">API et documentation</a></li>
+        <li><a href="#auth">Authentification</a></li>
+        <li><a href="#mail">E-mail</a></li>
+        <li><a href="#securite">Sécurité</a></li>
+        <li><a href="#logs">Logs</a></li>
+        <li><a href="#musique">Source musicale</a></li>
+        <li><a href="#mobile">Mobile</a></li>
+        <li><a href="#tests">Tests</a></li>
+        <li><a href="#charge">Test de charge</a></li>
+        <li><a href="#revue">Revue à quatre rôles</a></li>
+        <li><a href="#plan">Plan en phases</a></li>
+      </ol>
+    </nav>
+
+    <main class="content">
+
+      <section id="contraintes">
+        <div class="section-head">
+          <span class="eyebrow">Point de départ</span>
+          <h2>Ce que le sujet impose au choix des technos</h2>
+        </div>
+        <div class="panel">
+          <ul>
+            <li><strong>Chaque choix se défend en soutenance</strong> (§IV.1). Une techno que l'équipe sait expliquer vaut mieux qu'une techno qui fait tout toute seule.</li>
+            <li><strong>« Le SDK choisi ne doit pas faire votre travail »</strong> (§III). Firebase, Supabase Auth/Realtime ou Auth0 sont donc risqués : l'authentification et le temps réel doivent être écrits par l'équipe.</li>
+            <li><strong>Le back est la source de vérité, l'app n'est qu'une télécommande</strong> (§V.3, §V.5). Licences, visibilité et concurrence se vérifient côté serveur. L'adresse du back doit être configurable dans l'app.</li>
+            <li><strong>Évalué explicitement :</strong> concurrence des votes et déplacements (§V.2), log de chaque action mobile avec plateforme, appareil et version (§V.6), test de charge chiffré avec les caractéristiques du serveur (§V.7), tests pour chaque couche (§V.8).</li>
+            <li><strong>Secrets dans un <code>.env</code> ignoré par git</strong>, sinon échec direct. Aucune bibliothèque tierce committée : tout s'installe via le Makefile (§IV.1, §V.8).</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="decisions">
+        <div class="section-head">
+          <span class="eyebrow">À trancher avant de coder les services</span>
+          <h2>Décisions de groupe</h2>
+          <p>Ces quatre points conditionnent le reste. La revue à quatre rôles les a tous fait remonter.</p>
+        </div>
+        <div class="decisions">
+          <article class="decision">
+            <header><h3>Les 2 services sur 3</h3><span class="chip mid">À décider</span></header>
+            <span class="ref">§V.2 · §V.7</span>
+            <p>Consensus de la revue : le vote (a) et la playlist (c), qui reposent sur le même modèle de liste ordonnée modifiée en parallèle. À clarifier : le §V.7 parle de mesurer « vos 3 services ».</p>
+          </article>
+          <article class="decision">
+            <header><h3>La règle de concurrence</h3><span class="chip bad">Bloquant</span></header>
+            <span class="ref">§V.2.1 · §V.2.3</span>
+            <p>Que se passe-t-il quand deux personnes votent ou déplacent la même piste en même temps ?</p>
+            <ul>
+              <li>Le dernier qui écrit gagne.</li>
+              <li>Le conflit est renvoyé au client (erreur <code>409</code>).</li>
+              <li>Le serveur sérialise les opérations.</li>
+            </ul>
+          </article>
+          <article class="decision">
+            <header><h3>La source musicale</h3><span class="chip bad">Bloquant</span></header>
+            <span class="ref">§III · §V.2.2</span>
+            <p>Quota YouTube très bas pour la recherche, et une question ouverte : quel appareil joue réellement le son ? La réponse détermine aussi le service de délégation par appareil.</p>
+          </article>
+          <article class="decision">
+            <header><h3>L'ORM</h3><span class="chip mid">Après un essai</span></header>
+            <span class="ref">Dépend de la règle de concurrence</span>
+            <p>Désaccord entre l'Architecte (TypeORM ou MikroORM) et le Développeur (décider après un essai d'un jour : 50 requêtes concurrentes testées contre un vrai PostgreSQL).</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="bdd">
+        <div class="section-head">
+          <span class="eyebrow">Stockage</span>
+          <h2>Base de données</h2>
+        </div>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Option</th><th>Pour</th><th>Contre</th><th>Avis</th></tr></thead>
+            <tbody>
+              <tr><td>PostgreSQL<small>déjà en place</small></td><td>Données très relationnelles (amis, invitations, licences), transactions, verrous de ligne, contraintes <code>UNIQUE</code>, <code>JSONB</code> pour les préférences, PostGIS pour la licence « lieu »</td><td>Migrations à gérer</td><td><span class="chip ok">Recommandé</span></td></tr>
+              <tr><td>MySQL / MariaDB</td><td>Relationnel, très connu</td><td>Rien de plus que Postgres, moins riche en JSON et en extensions</td><td><span class="chip mid">Possible</span></td></tr>
+              <tr><td>MongoDB</td><td>Une playlist tient dans un document, <code>$inc</code> est atomique</td><td>Les relations (amis, droits par appareil) deviennent des jointures manuelles, transactions multi-documents plus lourdes</td><td><span class="chip bad">Déconseillé</span></td></tr>
+              <tr><td>Firestore / Supabase</td><td>Temps réel intégré</td><td>Le SDK ferait le temps réel à la place de l'équipe, le back n'est plus la source de vérité</td><td><span class="chip bad">À éviter</span></td></tr>
+              <tr><td>SQLite</td><td>Rien à installer</td><td>Un seul écrivain à la fois : incompatible avec un test de concurrence ou de charge</td><td><span class="chip info">Tests seulement</span></td></tr>
+              <tr><td>Redis<small>en complément</small></td><td>Classement des votes (<code>ZINCRBY</code>), stockage du rate limiting, diffusion Socket.IO entre plusieurs instances</td><td>Jamais la source de vérité, un service de plus à faire tourner</td><td><span class="chip info">Si la charge le justifie</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="orm">
+        <div class="section-head">
+          <span class="eyebrow">Accès aux données depuis NestJS</span>
+          <h2>ORM</h2>
+          <p>Le critère principal est la façon de gérer la concurrence : verrou pessimiste (<code>SELECT … FOR UPDATE</code>) ou verrou optimiste (colonne <code>version</code>).</p>
+        </div>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Option</th><th>Pour</th><th>Contre</th><th>Avis</th></tr></thead>
+            <tbody>
+              <tr><td>TypeORM</td><td>Intégration officielle <code>@nestjs/typeorm</code>, décorateurs dans le style Nest, verrou pessimiste et <code>@VersionColumn</code> natifs</td><td>Typage plus faible, réputation de bugs</td><td><span class="chip ok">Candidat</span></td></tr>
+              <tr><td>Prisma</td><td>Schéma lisible, types générés, migrations simples, très répandu</td><td>Le verrou pessimiste demande du SQL brut. Le verrou optimiste marche sans (<code>update where {id, version}</code>)</td><td><span class="chip ok">Candidat</span></td></tr>
+              <tr><td>MikroORM</td><td>Verrous optimiste et pessimiste natifs, bien typé</td><td>Moins répandu, plus long à apprendre</td><td><span class="chip mid">Possible</span></td></tr>
+              <tr><td>Drizzle</td><td>Proche du SQL, léger, <code>.for('update')</code> disponible</td><td>Moins dans l'esprit Nest, migrations plus manuelles</td><td><span class="chip mid">Possible</span></td></tr>
+              <tr><td>Kysely / <code>pg</code> brut</td><td>Contrôle total, très facile à expliquer</td><td>Plus de code à écrire</td><td><span class="chip mid">Possible</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="temps-reel">
+        <div class="section-head">
+          <span class="eyebrow">Services live</span>
+          <h2>Temps réel</h2>
+          <p>Principe partagé par les quatre rôles : <strong>REST pour écrire</strong> (voter, déplacer une piste), <strong>WebSocket pour diffuser</strong> les changements. La base reste la vérité.</p>
+        </div>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Option</th><th>Pour</th><th>Contre</th><th>Avis</th></tr></thead>
+            <tbody>
+              <tr><td>Socket.IO<small><code>@nestjs/platform-socket.io</code></small></td><td>Une « room » par événement ou playlist, reconnexion automatique, accusés de réception, client Flutter <code>socket_io_client</code></td><td>Protocole propre à Socket.IO, que k6 ne parle pas nativement</td><td><span class="chip ok">Candidat</span></td></tr>
+              <tr><td>WebSocket brut<small><code>@nestjs/platform-ws</code></small></td><td>Standard, léger, <code>web_socket_channel</code> côté Flutter, testable avec k6</td><td>Rooms, reconnexion et heartbeat à coder soi-même</td><td><span class="chip ok">Candidat</span></td></tr>
+              <tr><td>SSE<small><code>@Sse</code> dans Nest</small></td><td>Simple, en HTTP, suffisant si toutes les actions passent par REST</td><td>Serveur vers client uniquement, moins courant côté Flutter</td><td><span class="chip mid">Possible</span></td></tr>
+              <tr><td>GraphQL subscriptions</td><td>Cohérent si l'API est en GraphQL</td><td>Double complexité</td><td><span class="chip bad">Déconseillé</span></td></tr>
+              <tr><td>Polling</td><td>Trivial</td><td>Ce n'est pas du temps réel, et ça charge le serveur</td><td><span class="chip bad">À éviter</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="api">
+        <div class="section-head">
+          <span class="eyebrow">§V.4</span>
+          <h2>API et documentation</h2>
+        </div>
+        <dl class="choices">
+          <div class="choice"><dt>Style d'API</dt><dd><strong>REST + JSON</strong> : recommandé par le sujet et natif dans Nest. GraphQL (<code>@nestjs/graphql</code>) se défend, mais le sujet pousse vers REST et Swagger. tRPC et gRPC sont inadaptés à un client Flutter.</dd></div>
+          <div class="choice"><dt>Validation</dt><dd><strong><code>class-validator</code> + <code>class-transformer</code></strong>, natifs dans Nest et qui alimentent Swagger. Alternative : Zod via <code>nestjs-zod</code>.</dd></div>
+          <div class="choice"><dt>Documentation</dt><dd><strong><code>@nestjs/swagger</code></strong> (OpenAPI), avec l'interface Swagger UI ou Scalar.</dd></div>
+          <div class="choice"><dt>Couche HTTP de Nest</dt><dd><strong>Express</strong> (déjà en place) ou <strong>Fastify</strong> (<code>@nestjs/platform-fastify</code>). Fastify est nettement plus rapide, ce qui joue sur le test de charge, mais certains middlewares Express ne marchent pas avec.</dd></div>
+        </dl>
+      </section>
+
+      <section id="auth">
+        <div class="section-head">
+          <span class="eyebrow">§V.1 · §V.5 · §V.6</span>
+          <h2>Authentification et sessions</h2>
+        </div>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Mécanisme</th><th>Pour</th><th>Contre</th><th>Avis</th></tr></thead>
+            <tbody>
+              <tr><td><code>@nestjs/passport</code><small>stratégies locale et JWT</small></td><td>Classique, bien documenté, intégré à Nest</td><td>Une couche d'abstraction à comprendre</td><td><span class="chip ok">Candidat</span></td></tr>
+              <tr><td>Guards Nest maison</td><td>Facile à expliquer ligne par ligne</td><td>Plus de code à écrire</td><td><span class="chip ok">Candidat</span></td></tr>
+              <tr><td>Better Auth, Auth0, Keycloak, Firebase Auth</td><td>Tout est déjà fait</td><td>Contredit « le SDK ne doit pas faire votre travail »</td><td><span class="chip bad">À éviter</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <dl class="choices">
+          <div class="choice"><dt>Tokens</dt><dd>Un <strong>JWT d'accès court</strong> (environ 15 min) et un <strong>refresh token opaque, rotatif, hashé en base</strong>, avec détection de réutilisation : c'est la réponse au vol de session. Les sessions serveur avec cookie sont l'alternative, moins naturelle sur mobile.</dd></div>
+          <div class="choice"><dt>Mots de passe</dt><dd><strong>argon2id</strong>, ou bcrypt.</dd></div>
+          <div class="choice"><dt>Google / Facebook</dt><dd>Les packages <code>google_sign_in</code> et <code>flutter_facebook_auth</code> récupèrent un jeton côté app ; le back le vérifie (<code>google-auth-library</code>, endpoint Graph API <code>debug_token</code>). Pas de redirection web. Le sujet demande Google <strong>ou</strong> Facebook : Google seul suffit. Facebook marche en mode développement pour les comptes déclarés testeurs.</dd></div>
+          <div class="choice"><dt>Côté mobile</dt><dd>Les tokens vont dans <code>flutter_secure_storage</code>.</dd></div>
+        </dl>
+      </section>
+
+      <section id="mail">
+        <div class="section-head">
+          <span class="eyebrow">Validation du compte et mot de passe oublié</span>
+          <h2>E-mail</h2>
+        </div>
+        <dl class="choices">
+          <div class="choice"><dt>Envoi</dt><dd><strong>Nodemailer</strong> en SMTP, éventuellement via <code>@nestjs-modules/mailer</code> pour les templates.</dd></div>
+          <div class="choice"><dt>Dev et CI</dt><dd><strong>Mailpit</strong> : capture les mails en local dans Docker et offre une API utilisable dans les tests e2e. Mailtrap est l'équivalent en ligne.</dd></div>
+          <div class="choice"><dt>Envoi réel</dt><dd>SMTP Gmail avec un mot de passe d'application, ou Brevo, Resend, Mailgun (offres gratuites).</dd></div>
+        </dl>
+      </section>
+
+      <section id="securite">
+        <div class="section-head">
+          <span class="eyebrow">§V.6</span>
+          <h2>Sécurité</h2>
+        </div>
+        <dl class="choices">
+          <div class="choice"><dt>Bruteforce</dt><dd><strong><code>@nestjs/throttler</code></strong> (stockage en mémoire ou Redis), plus un blocage progressif du compte après plusieurs échecs.</dd></div>
+          <div class="choice"><dt>Durcissement HTTP</dt><dd><code>helmet</code>, CORS strict, <code>ValidationPipe</code> avec <code>whitelist</code> qui rejette les champs inconnus.</dd></div>
+          <div class="choice"><dt>Droits</dt><dd>Visibilité et licences par des <strong>guards et policies maison</strong>, ou CASL. Le code maison est plus facile à défendre.</dd></div>
+          <div class="choice"><dt>Licence lieu + créneau</dt><dd>Position via <code>geolocator</code> côté Flutter, vérification côté serveur par un calcul de distance ou <code>ST_DWithin</code> (PostGIS). Des coordonnées envoyées par le client peuvent être falsifiées : à reconnaître en soutenance.</dd></div>
+        </dl>
+      </section>
+
+      <section id="logs">
+        <div class="section-head">
+          <span class="eyebrow">§V.6 · plateforme, appareil, version</span>
+          <h2>Logs</h2>
+        </div>
+        <dl class="choices">
+          <div class="choice"><dt>Bibliothèque</dt><dd><strong><code>nestjs-pino</code></strong> (JSON, rapide), <code>nest-winston</code>, ou le Logger natif de Nest.</dd></div>
+          <div class="choice"><dt>Stockage</dt><dd>Sortie JSON standard ; une <strong>table <code>action_logs</code></strong> en base, facile à interroger en soutenance ; ou Loki + Grafana / ELK, plus lourds.</dd></div>
+          <div class="choice"><dt>Mécanisme</dt><dd>Côté app, un intercepteur <code>dio</code> ajoute <code>X-Platform</code>, <code>X-Device</code> et <code>X-App-Version</code> (remplis avec <code>device_info_plus</code> et <code>package_info_plus</code>). Côté Nest, un intercepteur global les journalise et rejette les requêtes qui ne les ont pas.</dd></div>
+        </dl>
+      </section>
+
+      <section id="musique">
+        <div class="section-head">
+          <span class="eyebrow">Ce choix conditionne le reste</span>
+          <h2>Source musicale</h2>
+        </div>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Option</th><th>Pour</th><th>Contre</th><th>Avis</th></tr></thead>
+            <tbody>
+              <tr><td>YouTube<small>lecteur IFrame + Data API v3, déjà en place</small></td><td>Catalogue énorme, morceaux complets</td><td>Une recherche coûte 100 unités sur 10 000 par jour, soit environ 100 recherches par jour pour toute l'équipe, tests compris. Les CGU interdisent la lecture en arrière-plan et l'extraction audio</td><td><span class="chip mid">Avec cache</span></td></tr>
+              <tr><td>Deezer API</td><td>Recherche sans clé, métadonnées riches</td><td>Extraits de 30 secondes seulement</td><td><span class="chip mid">Pour la recherche</span></td></tr>
+              <tr><td>Jamendo API</td><td>Morceaux complets sous Creative Commons, clé gratuite</td><td>Catalogue indépendant, peu de titres connus</td><td><span class="chip mid">Possible</span></td></tr>
+              <tr><td>Spotify Web API</td><td>Catalogue et recherche</td><td>Lecture complète réservée aux comptes Premium avec l'app Spotify, mode développeur très restreint</td><td><span class="chip bad">Déconseillé</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note"><p>Une combinaison possible : chercher dans Deezer ou Jamendo, lire avec YouTube, et mettre les résultats de recherche en cache côté back. Les quotas et conditions ci-dessus n'ont pas été revérifiés en ligne : à contrôler avant de trancher.</p></div>
+      </section>
+
+      <section id="mobile">
+        <div class="section-head">
+          <span class="eyebrow">Flutter déjà en place</span>
+          <h2>Mobile</h2>
+        </div>
+        <dl class="choices">
+          <div class="choice"><dt>Gestion d'état</dt><dd><strong>Riverpod</strong> (testable, ne dépend pas du contexte des widgets), <strong>Bloc</strong> (très structuré mais verbeux) ou Provider (simple mais limité). GetX est déconseillé.</dd></div>
+          <div class="choice"><dt>HTTP</dt><dd><strong><code>dio</code></strong>, dont les intercepteurs gèrent le renouvellement des tokens et les en-têtes de log. Le package <code>http</code> est l'alternative simple.</dd></div>
+          <div class="choice"><dt>Navigation</dt><dd><code>go_router</code>.</dd></div>
+          <div class="choice"><dt>Adresse du back</dt><dd>Un écran « Serveur » dans l'app, enregistré avec <code>shared_preferences</code>, avec une valeur par défaut passée par <code>--dart-define</code>.</dd></div>
+          <div class="choice"><dt>Bonus web (§VI.1)</dt><dd>Flutter compile aussi pour le web : le bonus responsive est presque gratuit.</dd></div>
+        </dl>
+      </section>
+
+      <section id="tests">
+        <div class="section-head">
+          <span class="eyebrow">§V.8 · une couverture par couche</span>
+          <h2>Tests</h2>
+        </div>
+        <dl class="choices">
+          <div class="choice"><dt>Back</dt><dd>Jest (déjà en place) et <code>supertest</code> pour les tests de bout en bout. <strong>Testcontainers</strong> pour tester la concurrence contre un vrai PostgreSQL, jamais avec des mocks.</dd></div>
+          <div class="choice"><dt>Mobile</dt><dd><code>flutter_test</code> pour les tests unitaires et de widgets, <code>mocktail</code> pour les mocks, <code>integration_test</code> ou Patrol pour le bout en bout.</dd></div>
+          <div class="choice"><dt>Critère type</dt><dd>« N votes envoyés en parallèle donnent exactement N votes, et aucune position de playlist n'est en double. »</dd></div>
+        </dl>
+      </section>
+
+      <section id="charge">
+        <div class="section-head">
+          <span class="eyebrow">§V.7</span>
+          <h2>Test de charge</h2>
+          <p>Le choix dépend du temps réel retenu : <strong>Socket.IO va avec Artillery, WebSocket brut avec k6</strong>. Notez le CPU, la RAM et le type de machine pour que le chiffre soit cohérent.</p>
+        </div>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Outil</th><th>Pour</th><th>Contre</th><th>Avis</th></tr></thead>
+            <tbody>
+              <tr><td>k6</td><td>Scripts en JS, WebSocket brut, seuils de réussite, rapports</td><td>Socket.IO non géré nativement</td><td><span class="chip ok">Si WebSocket brut</span></td></tr>
+              <tr><td>Artillery</td><td>Gère Socket.IO nativement, scénarios en YAML</td><td>Rapports moins poussés</td><td><span class="chip ok">Si Socket.IO</span></td></tr>
+              <tr><td>Gatling / JMeter</td><td>Cités par le sujet, rapports riches</td><td>Plus lourds à mettre en place</td><td><span class="chip mid">Possible</span></td></tr>
+              <tr><td>ab / Siege</td><td>Cités par le sujet, très simples</td><td>HTTP uniquement, pas de WebSocket</td><td><span class="chip info">REST seulement</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="revue">
+        <div class="section-head">
+          <span class="eyebrow">PM · Architecte · Développeur · QA</span>
+          <h2>Revue à quatre rôles</h2>
+        </div>
+        <div class="roles">
+          <article class="role"><span class="who">PM</span><p>Fixer tout de suite les 2 services et une « définition de terminé » commune à chaque endpoint : doc Swagger, test, log, contrôle d'accès vérifié. Tenir un tableau des décisions avec, pour chacune, une personne capable de la défendre. Les bonus restent hors périmètre tant que l'obligatoire n'est pas parfait.</p></article>
+          <article class="role"><span class="who">Architecte</span><p>PostgreSQL est la seule vérité, le WebSocket ne fait que diffuser. Contrainte <code>UNIQUE</code> pour les votes, verrou optimiste ou <code>FOR UPDATE</code> pour la playlist. Préférence pour TypeORM ou MikroORM plutôt que Prisma.</p></article>
+          <article class="role"><span class="who">Développeur</span><p>Choisir l'ORM sur des faits : un essai d'un jour avec 50 requêtes concurrentes testées via Testcontainers. Mettre l'intercepteur de log en place dès le premier endpoint.</p></article>
+          <article class="role"><span class="who">QA</span><p>Une matrice qui relie chaque exigence à un critère d'acceptation et à un niveau de test. Des tests qui vérifient qu'un utilisateur ne lit pas les données d'un autre, un test du rate limiting, et un test de charge qui couvre aussi le WebSocket.</p></article>
+        </div>
+        <div class="panel synth">
+          <h3>Synthèse</h3>
+          <ul>
+            <li><strong>Bloquant, soulevé par les quatre rôles :</strong> la règle de concurrence doit être décidée avant de coder.</li>
+            <li><strong>Bloquant, soulevé par trois rôles :</strong> la source musicale et l'appareil qui joue réellement le son.</li>
+            <li><strong>Consensus :</strong> faire le vote (a) et la playlist (c). À vérifier avec vos pairs, car le §V.7 parle de « vos 3 services ».</li>
+            <li><strong>Désaccord :</strong> l'ORM. Le reproche fait à Prisma ne vaut que pour le verrou pessimiste ; avec un verrou optimiste, Prisma reste possible.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="plan">
+        <div class="section-head">
+          <span class="eyebrow">Ordre de travail proposé</span>
+          <h2>Plan en phases</h2>
+        </div>
+        <ol class="steps">
+          <li><div><strong>Décisions.</strong> <span>Les 2 services, la source musicale, la règle de concurrence, puis l'ORM après l'essai d'un jour.</span></div></li>
+          <li><div><strong>Socle back.</strong> <span>Config <code>.env</code>, ORM et migrations, Swagger, <code>ValidationPipe</code>, intercepteur de log, rate limiting, infrastructure de tests.</span></div></li>
+          <li><div><strong>Authentification complète.</strong> <span>Mail et mot de passe avec validation et reset, JWT et refresh rotatif, Google, liaison du compte social.</span></div></li>
+          <li><div><strong>Profil et amis.</strong> <span>Les quatre niveaux de visibilité.</span></div></li>
+          <li><div><strong>Service 1.</strong> <span>REST, WebSocket, licences et tests de concurrence.</span></div></li>
+          <li><div><strong>Service 2.</strong> <span>Même structure que le service 1.</span></div></li>
+          <li><div><strong>Mobile.</strong> <span>En parallèle à partir de l'étape 3 : écran serveur, authentification, en-têtes de log, puis les écrans des services.</span></div></li>
+          <li><div><strong>Finalisation.</strong> <span>Test de charge chiffré, revue de sécurité, documentation, puis les bonus seulement si tout le reste est parfait.</span></div></li>
+        </ol>
+      </section>
+
+    </main>
+  </div>
+
+  <footer>
+    <p>Comparatif préparé avec l'aide d'une IA (Claude), comme le sujet demande de le signaler. Les choix finaux restent ceux de l'équipe.</p>
+    <p>Les quotas et conditions des API musicales n'ont pas été revérifiés en ligne.</p>
+  </footer>
+</div>
+
+</body></html>
