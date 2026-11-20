@@ -6,7 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Observable, tap } from 'rxjs';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
@@ -16,6 +16,7 @@ export class LoggingInterceptor implements NestInterceptor {
     const start = Date.now();
 
     const request = context.switchToHttp().getRequest<Request>();
+    const response = context.switchToHttp().getResponse<Response>();
     const listHeader = ['x-platform', 'x-device', 'x-app-version'];
 
     const missingHeaders: string[] = [];
@@ -31,15 +32,12 @@ export class LoggingInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap(() => {
-        if (missingHeaders.length > 0) {
-          this.logger.warn(
-            `${request.method} ${request.url} - ${Date.now() - start}ms - ${JSON.stringify(values)} - missing: ${missingHeaders.join(', ')}`,
-          );
-        } else {
-          this.logger.log(
-            `${request.method} ${request.url} - ${Date.now() - start}ms - ${JSON.stringify(values)}`,
-          );
-        }
+        const logInfo = `${request.method} ${request.url} ${response.statusCode} - ${Date.now() - start}ms - ${JSON.stringify(values)}`;
+
+        if (missingHeaders.length > 0)
+          this.logger.warn(`${logInfo} - missing: ${missingHeaders.join(', ')}`);
+        else
+          this.logger.log(logInfo);
       }),
     );
   }
