@@ -1,3 +1,4 @@
+// Tests écrits avec l'aide d'une IA (Claude), relus et validés par Arnaud.
 import {
   Controller,
   Get,

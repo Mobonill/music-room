@@ -9,6 +9,7 @@ import {
 import { Observable, tap } from 'rxjs';
 import type { Request, Response } from 'express';
 
+// TODO: journaliser les requêtes qui n'atteignent pas de contrôleur (refus des guards d'auth, 404)
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
   private readonly logger = new Logger(LoggingInterceptor.name);
