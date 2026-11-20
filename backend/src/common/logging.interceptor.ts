@@ -32,12 +32,12 @@ export class LoggingInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap(() => {
-        const logInfo = `${request.method} ${request.url} ${response.statusCode} - ${Date.now() - start}ms - ${JSON.stringify(values)}`;
+        let logInfo = `${request.method} ${request.url} ${response.statusCode} - ${Date.now() - start}ms - ${JSON.stringify(values)}`;
 
-        if (missingHeaders.length > 0)
-          this.logger.warn(`${logInfo} - missing: ${missingHeaders.join(', ')}`);
-        else
-          this.logger.log(logInfo);
+        if (missingHeaders.length > 0) {
+          logInfo += ` - missing: ${missingHeaders.join(', ')}`;
+          this.logger.warn(logInfo);
+        } else this.logger.log(logInfo);
       }),
     );
   }
